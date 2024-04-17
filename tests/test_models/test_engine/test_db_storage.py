@@ -3,7 +3,7 @@
     tests for FileStorage
 """
 import unittest
-from models.engine.db_storage import DBStorage
+from models.engine.db_storageold import DBStorage
 from sqlalchemy.engine.base import Engine
 
 

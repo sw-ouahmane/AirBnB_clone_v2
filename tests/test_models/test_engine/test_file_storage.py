@@ -2,7 +2,7 @@
 """ Module for testing file storage"""
 import unittest
 from models.base_model import BaseModel
-from models import storage
+from models.__init__old import storage
 import os
 from os import environ
 

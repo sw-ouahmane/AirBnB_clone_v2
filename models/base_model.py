@@ -4,7 +4,7 @@ from os import environ
 from uuid import uuid4
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime
-import models.__init__old as __init__old
+import models
 from sqlalchemy.ext.declarative import declarative_base
 
 s = environ.get("HBNB_TYPE_STORAGE")
@@ -56,8 +56,8 @@ class BaseModel:
         """
         self.updated_at = datetime.now()
         if environ.get("HBNB_TYPE_STORAGE") != "db":
-            __init__old.storage.new(self)
-            __init__old.storage.save()
+            models.storage.new(self)
+            models.storage.save()
 
     def to_dict(self):
         """
@@ -77,4 +77,4 @@ class BaseModel:
     def delete(self):
         """delete the current instance from the storage"""
         key: str = f"{self.__class__.__name__}.{self.id}"
-        del __init__old.storage.__objects[key]
+        del models.storage.__objects[key]

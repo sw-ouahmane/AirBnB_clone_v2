@@ -1,35 +1,30 @@
 #!/usr/bin/python3
-"""Defines the State class."""
-import models.__init__old as __init__old
-from os import getenv
-from models.base_model import Base
-from models.base_model import BaseModel
-from models.city import City
-from sqlalchemy import Column
-from sqlalchemy import String
+""" State Module for HBNB project """
+from os import environ
+
 from sqlalchemy.orm import relationship
+from models.base_model import BaseModel, Base
+from sqlalchemy import Column, String
+import models.__init__old as __init__old
+
+# from models.city import City
 
 
 class State(BaseModel, Base):
-    """Represents a state for a MySQL database.
+    """State class"""
 
-    Inherits from SQLAlchemy Base and links to the MySQL table states.
+    if environ.get("HBNB_TYPE_STORAGE") == "db":
+        __tablename__ = "states"
+        name = Column(String(128), nullable=False)
+        cities = relationship("City", backref="state")
+    else:
+        name = ""
 
-    Attributes:
-        __tablename__ (str): The name of the MySQL table to store States.
-        name (sqlalchemy String): The name of the State.
-        cities (sqlalchemy relationship): The State-City relationship.
-    """
-    __tablename__ = "states"
-    name = Column(String(128), nullable=False)
-    cities = relationship("City",  backref="state", cascade="delete")
-
-    if getenv("HBNB_TYPE_STORAGE") != "db":
         @property
         def cities(self):
-            """Get a list of all related City objects."""
-            city_list = []
-            for city in list(__init__old.storage.all(City).values()):
+            """cities list"""
+            result = []
+            for city in __init__old.storage.all(__init__old.city.City).values():
                 if city.state_id == self.id:
-                    city_list.append(city)
-            return city_list
+                    result.append(city)
+            return result

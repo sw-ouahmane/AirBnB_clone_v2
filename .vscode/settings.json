@@ -3,5 +3,8 @@
         "activityBar.background": "#17340E",
         "titleBar.activeBackground": "#214913",
         "titleBar.activeForeground": "#F7FCF5"
-    }
+    },
+    "python.analysis.extraPaths": [
+        "./web_"
+    ]
 }

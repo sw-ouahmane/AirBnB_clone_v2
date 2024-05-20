@@ -1,37 +1,46 @@
 #!/usr/bin/python3
-"""update - uncompress and create simbolic link"""
+""" a Fabric script (based on the file 1-pack_web_static.py) that distributes..
+    ..an archive to your web servers, using the function do_deploy: """
 
-from fabric.api import run, put, env
+
+from fabric.api import *
+from datetime import datetime
 from os.path import exists
 
-env.user = 'ubuntu'
-env.hosts = ['54.237.43.101', '52.86.186.82']
+
+env.hosts = ['54.237.43.101', '52.86.186.82']  # <IP web-01>, <IP web-02>
+# ^ All remote commands must be executed on your both web servers
+# (using env.hosts = ['<IP web-01>', 'IP web-02'] variable in your script)
 
 
 def do_deploy(archive_path):
+    """ distributes an archive to my web servers
     """
-        Distributes an archive to your web servers
-    """
-    if not exists(archive_path):
-        return False
-
-    _path = archive_path.split("/")
-    path_no_ext = _path[1].split(".")[0]
+    if exists(archive_path) is False:
+        return False  # Returns False if the file at archive_path doesnt exist
+    filename = archive_path.split('/')[-1]
+    # so now filename is <web_static_2021041409349.tgz>
+    no_tgz = '/data/web_static/releases/' + "{}".format(filename.split('.')[0])
+    # curr = '/data/web_static/current'
+    tmp = "/tmp/" + filename
 
     try:
-        put(archive_path, "/tmp")
-        run("sudo mkdir -p /data/web_static/releases/" + path_no_ext + "/")
-        run("sudo tar -xzf /tmp/" + path_no_ext + ".tgz" +
-            " -C /data/web_static/releases/" + path_no_ext + "/")
-        run("sudo rm /tmp/" + path_no_ext + ".tgz")
-        run("sudo mv /data/web_static/releases/" + path_no_ext +
-            "/web_static/* /data/web_static/releases/" + path_no_ext + "/")
-        run("sudo rm -rf /data/web_static/releases/" +
-            path_no_ext + "/web_static")
-        run("sudo rm -rf /data/web_static/current")
-        run("sudo ln -s /data/web_static/releases/" + path_no_ext +
-            "/ /data/web_static/current")
+        put(archive_path, "/tmp/")
+        # ^ Upload the archive to the /tmp/ directory of the web server
+        run("mkdir -p {}/".format(no_tgz))
+        # Uncompress the archive to the folder /data/web_static/releases/
+        # <archive filename without extension> on the web server
+        run("tar -xzf {} -C {}/".format(tmp, no_tgz))
+        run("rm {}".format(tmp))
+        run("mv {}/web_static/* {}/".format(no_tgz, no_tgz))
+        run("rm -rf {}/web_static".format(no_tgz))
+        # ^ Delete the archive from the web server
+        run("rm -rf /data/web_static/current")
+        # Delete the symbolic link /data/web_static/current from the web server
+        run("ln -s {}/ /data/web_static/current".format(no_tgz))
+        # Create a new the symbolic link /data/web_static/current on the
+        # web server, linked to the new version of your code
+        # (/data/web_static/releases/<archive filename without extension>)
         return True
-
-    except Exception:
+    except:
         return False

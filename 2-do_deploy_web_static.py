@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 """
-Fabric script based on the file 1-pack_web_static.py that distributes an
-archive to the web servers
+Fabric script to generate a .tgz archive from the contents of the web_static folder
+and distribute it to web servers.
 """
 
-from fabric.api import put, run, env, local
+from fabric.api import local, put, run, env
+from datetime import datetime
 from os.path import exists
 
 env.hosts = ['54.237.43.101', '52.86.186.82']
@@ -69,3 +70,11 @@ def do_deploy(archive_path):
         print(f"An error occurred: {e}")
         return False
 
+def deploy():
+    """
+    Full deployment pipeline: pack and deploy the archive to web servers.
+    """
+    archive_path = do_pack()
+    if archive_path:
+        return do_deploy(archive_path)
+    return False

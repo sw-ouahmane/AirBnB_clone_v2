@@ -13,18 +13,15 @@ class TestConsole(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Setup for the test"""
-        print("Setting up class...")
         cls.consol = HBNBCommand()
 
     @classmethod
     def teardown(cls):
         """Teardown at the end of the test"""
-        print("Tearing down class...")
         del cls.consol
 
     def tearDown(self):
         """Remove temporary file (file.json) created as a result"""
-        print("Tearing down...")
         if os.getenv('HBNB_TYPE_STORAGE') != 'db':
             try:
                 os.remove("file.json")
@@ -33,7 +30,6 @@ class TestConsole(unittest.TestCase):
 
     def test_docstrings_in_console(self):
         """Checking for docstrings"""
-        print("Testing docstrings...")
         self.assertIsNotNone(console.__doc__)
         self.assertIsNotNone(HBNBCommand.emptyline.__doc__)
         self.assertIsNotNone(HBNBCommand.do_quit.__doc__)
@@ -47,7 +43,6 @@ class TestConsole(unittest.TestCase):
 
     def test_emptyline(self):
         """Test empty line"""
-        print("Testing empty line...")
         with patch('sys.stdout', new=StringIO()) as f:
             self.consol.onecmd("\n")
             self.assertEqual('', f.getvalue())

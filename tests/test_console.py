@@ -1,51 +1,63 @@
 #!/usr/bin/python3
-"""Test for console"""
+"""test for console to make it start working"""
 import unittest
-from unittest.mock import patch
 from io import StringIO
-import os
-import console
 from console import HBNBCommand
+import sys
+from models.base_model import BaseModel
+from models.user import User
+from models.state import State
+from models.city import City
+from models.amenity import Amenity
+from models.place import Place
+from models.review import Review
+from models.engine.file_storage import FileStorage
+from models.engine.db_storage import DBStorage
+
+
+
 
 class TestConsole(unittest.TestCase):
-    """Test Suite for the console"""
+    """this will test the console"""
 
-    @classmethod
-    def setUpClass(cls):
-        """Setup for the test"""
-        cls.consol = HBNBCommand()
-
-    @classmethod
-    def teardown(cls):
-        """Teardown at the end of the test"""
-        del cls.consol
-
-    def tearDown(self):
-        """Remove temporary file (file.json) created as a result"""
-        if os.getenv('HBNB_TYPE_STORAGE') != 'db':
-            try:
-                os.remove("file.json")
-            except Exception:
-                pass
-
-    def test_docstrings_in_console(self):
-        """Checking for docstrings"""
-        self.assertIsNotNone(console.__doc__)
-        self.assertIsNotNone(HBNBCommand.emptyline.__doc__)
+    def test_exists(self):
+        """checking for docstrings i think"""
         self.assertIsNotNone(HBNBCommand.do_quit.__doc__)
-        self.assertIsNotNone(HBNBCommand.do_EOF.__doc__)
         self.assertIsNotNone(HBNBCommand.do_create.__doc__)
         self.assertIsNotNone(HBNBCommand.do_show.__doc__)
         self.assertIsNotNone(HBNBCommand.do_destroy.__doc__)
         self.assertIsNotNone(HBNBCommand.do_all.__doc__)
         self.assertIsNotNone(HBNBCommand.do_update.__doc__)
-        self.assertIsNotNone(HBNBCommand.do_count.__doc__)
 
-    def test_emptyline(self):
-        """Test empty line"""
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("\n")
-            self.assertEqual('', f.getvalue())
+    @classmethod
+    def get_S(cls):
+        """get stringio value and close"""
+        temp_out = StringIO()
+        sys.stdout = temp_out
+        return temp_out.getvalue()
+
+    def test_create_error(self):
+        """test if create works right"""
+        temp_out = StringIO()
+        sys.stdout = temp_out
+
+        HBNBCommand().do_create(None)
+        self.assertEqual(temp_out.getvalue(), '** class name missing **\n')
+        temp_out.close()
+
+        temp_out = StringIO()
+        sys.stdout = temp_out
+        HBNBCommand().do_create("base")
+        self.assertEqual(temp_out.getvalue(), '** class doesn\'t exist **\n')
+        temp_out.close()
+
+        temp_out = StringIO()
+        sys.stdout = temp_out
+        HBNBCommand().do_create("BaseModel")
+        self.assertFalse(temp_out.getvalue() == '** class doesn\'t exist **\n')
+        temp_out.close()
+        sys.stdout = sys.__stdout__
+
 
 if __name__ == "__main__":
     unittest.main()

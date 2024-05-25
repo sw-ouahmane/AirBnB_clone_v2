@@ -1,15 +1,23 @@
 #!/usr/bin/python3
-""" Amenity Module for HBNB project """
-import os
+"""This is the amenity module."""
+from os import environ
+
+
+from models.base_model import BaseModel, Base
 from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
 
-from models.base_model import BaseModel, Base
-
 
 class Amenity(BaseModel, Base):
-    """Represents an amenity data set."""
-    __tablename__ = 'amenities'
-    name = Column(
-        String(128), nullable=False
-    ) if os.getenv('HBNB_TYPE_STORAGE') == 'db' else ''
+    """Amenity Class"""
+
+    if environ.get("HBNB_TYPE_STORAGE") == "db":
+        from models.place import place_amenity
+
+        __tablename__ = "amenities"
+        name = Column(String(128), nullable=False)
+        place_amenities = relationship(
+            "Place", secondary=place_amenity, back_populates="amenities"
+        )
+    else:
+        name = ""

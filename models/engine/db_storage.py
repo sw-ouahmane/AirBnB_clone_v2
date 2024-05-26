@@ -3,6 +3,7 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
+from models.base_model import Base
 import urllib.parse
 
 from models.base_model import BaseModel, Base

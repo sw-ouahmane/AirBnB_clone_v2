@@ -1,78 +1,116 @@
 #!/usr/bin/python3
-<<<<<<< HEAD
-""" Module for testing file storage"""
-import unittest
+"""
+Contains the TestFileStorageDocs classes
+"""
+
+import inspect
+import models
+from models.engine import file_storage
+from models.amenity import Amenity
 from models.base_model import BaseModel
-from models import storage
-import os
-from os import environ
-=======
-"""This module defines a class to manage file storage for hbnb clone"""
+from models.city import City
+from models.place import Place
+from models.review import Review
+from models.state import State
+from models.user import User
 import json
->>>>>>> fac2c91d666fd3ea5463a2a30762d737479b9d6a
+import unittest
+
+FileStorage = file_storage.FileStorage
+classes = {"Amenity": Amenity, "BaseModel": BaseModel, "City": City,
+           "Place": Place, "Review": Review, "State": State, "User": User}
 
 
-class FileStorage:
-    """This class manages storage of hbnb models in JSON format"""
+class TestFileStorageDocs(unittest.TestCase):
+    """Tests to check the documentation and style of FileStorage class"""
 
-    __file_path = "file.json"
-    __objects = {}
+    @classmethod
+    def setUpClass(cls):
+        """Set up for the doc tests"""
+        cls.fs_f = inspect.getmembers(FileStorage, inspect.isfunction)
 
-    def all(self, cls=None):
-        """Returns a dictionary of models currently in storage"""
-        if cls is None:
-            return self.__objects
-        result = {}
-        for key in self.__objects.keys():
-            if key.split(".")[0] == cls.__name__:
-                result.update({key: self.__objects[key]})
-        return result
+    def test_file_storage_module_docstring(self):
+        """Test for the file_storage.py module docstring"""
+        self.assertIsNot(file_storage.__doc__, None,
+                         "file_storage.py needs a docstring")
+        self.assertTrue(len(file_storage.__doc__) >= 1,
+                        "file_storage.py needs a docstring")
 
-    def new(self, obj):
-        """Adds new object to storage dictionary"""
-        self.all().update({obj.to_dict()["__class__"] + "." + obj.id: obj})
+    def test_file_storage_class_docstring(self):
+        """Test for the FileStorage class docstring"""
+        self.assertIsNot(FileStorage.__doc__, None,
+                         "FileStorage class needs a docstring")
+        self.assertTrue(len(FileStorage.__doc__) >= 1,
+                        "FileStorage class needs a docstring")
 
-    def save(self):
-        """Saves storage dictionary to file"""
-        with open(FileStorage.__file_path, "w") as f:
-            temp = {}
-            temp.update(FileStorage.__objects)
-            for key, val in temp.items():
-                temp[key] = val.to_dict()
-            json.dump(temp, f)
+    def test_fs_func_docstrings(self):
+        """Test for the presence of docstrings in FileStorage methods"""
+        for func in self.fs_f:
+            self.assertIsNot(func[1].__doc__, None,
+                             "{:s} method needs a docstring".format(func[0]))
+            self.assertTrue(len(func[1].__doc__) >= 1,
+                            "{:s} method needs a docstring".format(func[0]))
 
-    def reload(self):
-        """Loads storage dictionary from file"""
-        from models.base_model import BaseModel
-        from models.user import User
-        from models.place import Place
-        from models.state import State
-        from models.city import City
-        from models.amenity import Amenity
-        from models.review import Review
 
-        classes = {
-            "BaseModel": BaseModel,
-            "User": User,
-            "Place": Place,
-            "State": State,
-            "City": City,
-            "Amenity": Amenity,
-            "Review": Review,
-        }
-        try:
-            temp = {}
-            with open(FileStorage.__file_path, "r") as f:
-                temp = json.load(f)
-                for key, val in temp.items():
-                    self.all()[key] = classes[val["__class__"]](**val)
-        except FileNotFoundError:
-            pass
+class TestFileStorage(unittest.TestCase):
+    """Test the FileStorage class"""
 
-    def delete(self, obj=None):
-        """
-        delete obj from __objects if it’s inside - if obj is None,
-        the method should not do anything
-        """
-        if obj:
-            self.__objects.pop(f"{obj.__class__.__name__}.{obj.id}")
+    def test_all_returns_dict(self):
+        """Test that all returns the FileStorage.__objects attr"""
+        if models.storage_t != 'db':
+            storage = FileStorage()
+            new_dict = storage.all()
+            self.assertEqual(type(new_dict), dict)
+            self.assertIs(new_dict, storage._FileStorage__objects)
+
+    def test_new(self):
+        """test that new adds an object to the FileStorage.__objects attr"""
+        if models.storage_t != 'db':
+            storage = FileStorage()
+            save = FileStorage._FileStorage__objects
+            FileStorage._FileStorage__objects = {}
+            test_dict = {}
+            for key, value in classes.items():
+                with self.subTest(key=key, value=value):
+                    instance = value()
+                    instance_key = instance.__class__.__name__
+                    instance_key += "." + instance.id
+                    storage.new(instance)
+                    test_dict[instance_key] = instance
+                    self.assertEqual(test_dict, storage._FileStorage__objects)
+            FileStorage._FileStorage__objects = save
+
+    def test_save(self):
+        """Test that save properly saves objects to file.json"""
+        if models.storage_t != 'db':
+            storage = FileStorage()
+            new_dict = {}
+            for key, value in classes.items():
+                instance = value()
+                instance_key = instance.__class__.__name__ + "." + instance.id
+                new_dict[instance_key] = instance
+            save = FileStorage._FileStorage__objects
+            FileStorage._FileStorage__objects = new_dict
+            storage.save()
+            FileStorage._FileStorage__objects = save
+            for key, value in new_dict.items():
+                new_dict[key] = value.to_dict()
+            string = json.dumps(new_dict)
+            with open("file.json", "r") as f:
+                js = f.read()
+            self.assertEqual(json.loads(string), json.loads(js))
+
+    def test_get(self):
+        """Test that get properly returns a requested object"""
+        if models.storage_t != 'db':
+            storage = FileStorage()
+            user = User(name="User1")
+            user.save()
+            self.assertEqual(user, storage.get(User, user.id))
+
+    def test_count(self):
+        """Test that count properly counts all objects"""
+        if models.storage_t != 'db':
+            storage = FileStorage()
+            nobjs = len(storage._FileStorage__objects)
+            self.assertEqual(nobjs, storage.count())
